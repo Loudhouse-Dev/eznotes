@@ -10,7 +10,6 @@ export const subjectRouter = createTRPCRouter({
             },
         });
     }),
-});
 
 create: protectedProcedure
     .input(z.object({ title: z.string() }))
@@ -21,4 +20,5 @@ create: protectedProcedure
                 userId: ctx.session.user.id,
             },
         });
-    });
+    }),
+});
