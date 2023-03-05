@@ -1,7 +1,7 @@
 /** @type {import("prettier").Config} */
 const config = {
   singleQuote: true,
-  tabWidth: 4,
+  tabWidth: 2,
   semi: true,
   plugins: [require.resolve("prettier-plugin-tailwindcss")],
 };
