@@ -1,10 +1,14 @@
+import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { type NextPage } from 'next';
 import Head from 'next/head';
 import { Header } from '../components/Header';
-
+import { NoteEditor } from '../components/NoteEditor';
+import { NoteCard } from '../components/NoteCard';
 
 import { api, type RouterOutputs } from "../utils/api";
-import { useSession } from 'next-auth/react';
+
+
 
 const Home: NextPage = () => {
     
@@ -30,17 +34,47 @@ type Subject = RouterOutputs["subject"]["getAll"][0];
 const Content: React.FC = () => {
   const { data: sessionData } = useSession();
 
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+
   const { data: subjects, refetch: refetchSubjects } = api.subject.getAll.useQuery(
     undefined,
      {
         enabled: sessionData?.user !== undefined,
+        onSuccess: (data) => {
+          setSelectedSubject(selectedSubject ?? data[0] ?? null);
+        }
      }
   );  
 
   const createSubject = api.subject.create.useMutation({
     onSuccess: () => {
       void refetchSubjects();
-    }
+    },
+  });
+
+  //object containing data for the notes
+  //We fetch the notes only if the user is logged in and a subject is selected
+  const { data: notes, refetch: refetchNotes } = api.note.getAll.useQuery(
+    { 
+      subjectId: selectedSubject?.id ?? "",
+  },
+  {
+    enabled: sessionData?.user !== undefined && selectedSubject !== null,
+  }
+  );
+
+  //Use the useMutation hook to create a new note and refetch the notes
+  //we need void here because refetchNotes returns a promise and we aren't awaiting it
+  const createNote = api.note.create.useMutation({
+    onSuccess: () => {
+      void refetchNotes();
+    },
+  });
+
+  const deleteNote = api.note.delete.useMutation({
+    onSuccess: () => {
+      void refetchNotes();
+    },
   });
 
   return (
@@ -52,6 +86,7 @@ const Content: React.FC = () => {
               <a href="#" 
               onClick={(evt) => {
                 evt.preventDefault();
+                setSelectedSubject(subject);
               }}
             >
               {subject.title}
@@ -73,7 +108,27 @@ const Content: React.FC = () => {
           }}
           />
       </div>
-      <div className="col-span-3"></div>
+      <div className="col-span-3">
+        <div className="note-container">
+          {notes?.map((note) => (
+            <div key={note.id} className="mt-5">
+              <NoteCard
+                note={note}
+                onDelete={() => void deleteNote.mutate({ id: note.id })}
+              />
+            </div>
+            ))}
+          </div>
+        <NoteEditor 
+          onSave={({ title, content }) => {
+            void createNote.mutate({
+              title,
+              content,
+              subjectId: selectedSubject?.id ?? "", 
+          });
+        }}
+        />
+      </div>
     </div>
   )
 };
