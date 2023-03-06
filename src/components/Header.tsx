@@ -12,6 +12,7 @@ export const Header = () => {
           <div className="dropdown-end dropdown">
             {sessionData?.user ? (
               <label
+                //need a dummy comment 
                 tabIndex={0}
                 className="btn-ghost btn-circle avatar btn"
                 onClick={() => void signOut()}
