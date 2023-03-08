@@ -1,13 +1,14 @@
-import type { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from 'next';
 import {
   getServerSession,
   type NextAuthOptions,
   type DefaultSession,
-} from "next-auth";
-import GithubProvider from "next-auth/providers/github";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { env } from "../env.mjs";
-import { prisma } from "./db";
+} from 'next-auth';
+import GithubProvider from 'next-auth/providers/github';
+import GoogleProvider from 'next-auth/providers/google';
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import { env } from '../env.mjs';
+import { prisma } from './db';
 
 /**
  * Module augmentation for `next-auth` types.
@@ -16,13 +17,13 @@ import { prisma } from "./db";
  *
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  **/
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session extends DefaultSession {
     user: {
       id: string;
       // ...other properties
       // role: UserRole;
-    } & DefaultSession["user"];
+    } & DefaultSession['user'];
   }
 
   // interface User {
@@ -53,6 +54,17 @@ export const authOptions: NextAuthOptions = {
       clientId: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
     }),
+    GoogleProvider({
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+        },
+      },
+    }),
     /**
      * ...add more providers here
      *
@@ -72,8 +84,8 @@ export const authOptions: NextAuthOptions = {
  * @see https://next-auth.js.org/configuration/nextjs
  **/
 export const getServerAuthSession = (ctx: {
-  req: GetServerSidePropsContext["req"];
-  res: GetServerSidePropsContext["res"];
+  req: GetServerSidePropsContext['req'];
+  res: GetServerSidePropsContext['res'];
 }) => {
   return getServerSession(ctx.req, ctx.res, authOptions);
 };

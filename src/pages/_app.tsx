@@ -1,15 +1,19 @@
-import { type AppType } from "next/app";
-import { type Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
+import { type AppType } from 'next/app';
+import { SessionProvider } from 'next-auth/react';
+import { MyAppProps } from '../utils/types';
+import { Layouts } from '../layouts/Layouts';
+import { api } from '../utils/api';
 
-import { api } from "../utils/api";
+import '../styles/globals.css';
+import { NextPage } from 'next';
+import PanelLayout from '../layouts/PanelLayout';
 
-import "../styles/globals.css";
-
-const MyApp: AppType<{ session: Session | null }> = ({
+const MyApp = ({
   Component,
   pageProps: { session, ...pageProps },
-}) => {
+}: MyAppProps) => {
+  const Layout = Layouts[Component.Layout] ?? ((page: NextPage) => page);
+
   return (
     <SessionProvider session={session}>
       <Component {...pageProps} />
